@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MvcMovie.Models;
+using Newtonsoft.Json;
 
 namespace MvcMovie.Controllers
 {
@@ -20,7 +22,8 @@ namespace MvcMovie.Controllers
 
         #region snippet_SearchGenre
         // GET: Movies
-        public async Task<IActionResult> Index(string movieGenre, string searchString)
+        [HttpGet]
+        public async Task<IActionResult> Index([FromQuery] string movieGenreFilter, string searchString, bool orderByTitle)
         {
             #region snippet_LINQ
             // Use LINQ to get list of genres.
@@ -37,9 +40,14 @@ namespace MvcMovie.Controllers
                 movies = movies.Where(s => s.Title.Contains(searchString));
             }
 
-            if (!string.IsNullOrEmpty(movieGenre))
+            if (!string.IsNullOrEmpty(movieGenreFilter))
             {
-                movies = movies.Where(x => x.Genre == movieGenre);
+                movies = movies.Where(x => x.Genre == movieGenreFilter);
+            }
+
+            if (orderByTitle)
+            {
+                movies = movies.OrderBy(x => x.Title);
             }
 
             var movieGenreVM = new MovieGenreViewModel
@@ -68,10 +76,8 @@ namespace MvcMovie.Controllers
 
             var movie = await _context.Movie
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (movie == null)
-            {
-                return NotFound();
-            }
+
+            movie.Summary = GetDataFromWikipedia(movie.Title, movie.WikiId);
 
             return View(movie);
         }
@@ -82,10 +88,10 @@ namespace MvcMovie.Controllers
         {
             return View(new Movie
             {
-                Title = "Conan",
+                Title = "Conan the Barbarian",
                 ReleaseDate = DateTime.Now,
-                Genre = "Action",
-                Price = 1.99M
+                Price = 1.99M,
+                WikiId = "6713"
                 //,   Rating = "R"
             }
                 );
@@ -96,10 +102,11 @@ namespace MvcMovie.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Title,ReleaseDate,Genre,Price,Rating")] Movie movie)
+        public async Task<IActionResult> Create([Bind("Title,ReleaseDate,Genre,Price,Rating")] Movie movie)
         {
             if (ModelState.IsValid)
             {
+                _context.Movie.Add(movie);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
@@ -127,7 +134,7 @@ namespace MvcMovie.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,ReleaseDate,Genre,Price")] Movie movie)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,ReleaseDate,Genre,Price,Rating,WikiId")] Movie movie)
         {
             if (id != movie.Id)
             {
@@ -181,7 +188,7 @@ namespace MvcMovie.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var movie = await _context.Movie.FirstOrDefaultAsync();
+            var movie = await _context.Movie.FirstOrDefaultAsync(m => m.Id == id);
             _context.Movie.Remove(movie);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
@@ -191,6 +198,31 @@ namespace MvcMovie.Controllers
         private bool MovieExists(int id)
         {
             return _context.Movie.Any(e => e.Id == id);
+        }
+
+        
+        private static string GetDataFromWikipedia(string title, string wikiId)
+        {
+            if (string.IsNullOrWhiteSpace(wikiId) || string.IsNullOrWhiteSpace(title))
+            {
+                return "No summary was found in Wikipedia";
+            }
+
+            try
+            {
+                using (var client = new WebClient())
+                {
+                    var result =  client.DownloadString($"https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=true&titles={title}&format=json");
+                    dynamic parsedData = JsonConvert.DeserializeObject(result);
+                    return parsedData["query"]["pages"][wikiId]["extract"];
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return "No summary was found in Wikipedia";
+            }
+            
         }
     }
 }

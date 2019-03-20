@@ -25,16 +25,17 @@ namespace MvcMovie.Models
         [Column(TypeName = "decimal(18, 2)")]
         public decimal Price { get; set; }
         #endregion
-
-        [RegularExpression(@"^[A-Z]+[a-zA-Z""'\s-]*$")]
-        [Required]
-        [StringLength(30)]
-        public string Genre { get; set; }
+        //It is a fixed value
+        public String Genre { get; set; }
 
         [RegularExpression(@"^[A-Z]+[a-zA-Z0-9""'\s-]*$")]
-        [StringLength(5)]
+        [StringLength(5, MinimumLength = 1)]
         [Required]
         public string Rating { get; set; }
+
+        public string Summary { get; set; }
+
+        public string WikiId { get; set; }
     }
     #endregion
 }

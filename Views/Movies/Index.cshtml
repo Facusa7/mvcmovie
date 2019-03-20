@@ -1,4 +1,6 @@
-﻿@model MvcMovie.Models.MovieGenreViewModel
+﻿@using Microsoft.AspNetCore.Http
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model MvcMovie.Models.MovieGenreViewModel
 
 @{
     ViewData["Title"] = "Index";
@@ -16,6 +18,9 @@
         </select>
 
         Title: <input type="text" asp-for="SearchString" />
+
+        Order by Title <input type="checkbox" asp-for="OrderByTitle" />
+        
         <input type="submit" value="Filter" />
     </p>
 </form>

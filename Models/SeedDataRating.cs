@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
+using System.Net;
 
 namespace MvcMovie.Models
 {
@@ -29,7 +30,9 @@ namespace MvcMovie.Models
                         ReleaseDate = DateTime.Parse("1989-2-12"),
                         Genre = "Romantic Comedy",
                         Price = 7.99M,
-                        Rating = "R"
+                        Rating = "R",
+                        Summary = "",
+                        WikiId = "964625"
                     },
                 #endregion
 
@@ -39,7 +42,9 @@ namespace MvcMovie.Models
                         ReleaseDate = DateTime.Parse("1984-3-13"),
                         Genre = "Comedy",
                         Price = 8.99M,
-                        Rating = "G"
+                        Rating = "G",
+                        Summary = "",
+                        WikiId = "205013"
                     },
 
                     new Movie
@@ -48,7 +53,9 @@ namespace MvcMovie.Models
                         ReleaseDate = DateTime.Parse("1986-2-23"),
                         Genre = "Comedy",
                         Price = 9.99M,
-                        Rating = "G"
+                        Rating = "G",
+                        Summary = "",
+                        WikiId = "757937"
                     },
 
                     new Movie
@@ -57,7 +64,9 @@ namespace MvcMovie.Models
                         ReleaseDate = DateTime.Parse("1959-4-15"),
                         Genre = "Western",
                         Price = 3.99M,
-                        Rating = "NA"
+                        Rating = "NA",
+                        Summary = "",
+                        WikiId = ""
                     }
                 );
                 context.SaveChanges();
